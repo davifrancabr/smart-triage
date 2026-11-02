@@ -1,0 +1,3 @@
+RISCOS = {"VERMELHO": 0, "AMARELO": 1, "VERDE": 2}
+
+EMOJI = {"VERMELHO": "🔴", "AMARELO": "🟡", "VERDE": "🟢"}

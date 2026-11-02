@@ -1,25 +1,45 @@
 import heapq
 
+import itertools
+
+from app.estruturas.fila_prioridade import FilaPrioridade
+from app.modelos.paciente import PacientePreferencial, Paciente
+
+
 class Triagem:
-    def __init__(self):
-        self.__fila = []
-        self.__contador = 0
+    def __init__(self, repo, classificador):
+        self.repo = repo
+        self.ia = classificador
+        self.fila = FilaPrioridade()
+        self.__contador = itertools.count()
+        self.recarregar_fila()
 
-    def adicionar(self, paciente, prioridade):
-        self.__contador = self.__contador + 1
-        heapq.heappush(self.__fila, (prioridade, self.__contador, paciente))
+    def recarregar_fila(self):
+        self.fila = FilaPrioridade()
+        self.__contador = itertools.count()
+        for p in self.repo.pacientes_aguardando():
+            self.fila.inserir(p.chave_prioridade(next(self.__contador)), p)
 
-    def chamarProximo(self):
-        if len(self.__fila) == 0:
+
+    def adicionar(self, nome, idade, cpf, sintomas, preferencial_motivo = None):
+        risco, just, origem = self.ia.classificar(idade, sintomas)
+        if preferencial_motivo:
+            p = PacientePreferencial(nome, idade, cpf, sintomas, risco, motivo=preferencial_motivo)
+        else:
+            p = Paciente(nome, idade, cpf, sintomas, risco)
+        self.repo.inserir_paciente(p)
+        self.fila.inserir(p.chave_prioridade(next(self.__contador)), p)
+        return p, just, origem
+
+    def chamarProximo(self, medico, obervacao = ""):
+        if self.fila.vazia():
             return None
-        item = heapq.heappop(self.__fila)
-        return item[2]
+        paciente = self.fila.remover()
+        medico.atender(paciente, obervacao)
+        return paciente
 
-    def mostrar(self):
-        _int = None
-        for a in self.__fila:
-            _int =  {a["nome"], a["idade"], a["sintoma"]}
-        return _int
+    def corrigir_risco(self, paciente_id, novo_risco):
+        self.repo.atualizar_risco(paciente_id, novo_risco)
+        self.recarregar_fila()
 
-    def quantidade(self):
-        return len(self.__fila)
+
