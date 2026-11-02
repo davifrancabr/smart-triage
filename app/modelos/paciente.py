@@ -2,7 +2,7 @@ from app.modelos.pessoa import Pessoa
 
 
 class Paciente(Pessoa):
-    def __init__(self, nome, idade, sintomas, id):
+    def __init__(self, nome: str, idade, sintomas: str, id_):
         super().__init__(nome, idade)
         self._idade = int(idade)
         self._sintomas = sintomas

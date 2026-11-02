@@ -1,5 +1,6 @@
 __pycache__/
 *.pyc
 data/*.db
-.env
+.env*
+!.env.example
 .venv/

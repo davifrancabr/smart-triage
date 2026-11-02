@@ -46,12 +46,12 @@ class ClassificadorIA:
             else:
                 
                 desc_lower = descricao_sintomas.lower()
-                if any(termo in desc_lower for in ["peito", "respirar", "inconsciente", "sangue", "infarto", "derrame"]):
+                if any(termo in desc_lower for termo in ["peito", "respirar", "inconsciente", "sangue", "infarto", "derrame"]):
                     return {
                         "risco": "Vermelho",
                         "justificativa": "Sintomas indicam risco iminente à vida (emergência médica absoluta)."
                     }
-                elif any(termo in desc_lower for in ["febre", "dor forte", "vômito", "tontura", "fratura"]):
+                elif any(termo in desc_lower for termo in ["febre", "dor forte", "vômito", "tontura", "fratura"]):
                     return {
                         "risco": "Amarelo",
                         "justificativa": "Condição moderada que requer atendimento rápido, porém sem risco imediato de óbito."
