@@ -9,7 +9,7 @@ A classe Paciente agora herda de Pessoa
 """
 class Paciente(Pessoa):
     def __init__(self, nome: str, idade, cpf: str, sintomas: str, risco = "VERDE", id_ = None, chegada = None):
-        super().__init__(nome, idade, cpf)
+        super().__init__(nome, cpf)
         self._idade = int(idade)
         self._sintomas = sintomas
         self._cpf = cpf

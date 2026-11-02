@@ -22,7 +22,7 @@ class Triagem:
 
 
     def adicionar(self, nome, idade, cpf, sintomas, preferencial_motivo = None):
-        risco, just, origem = self.ia.classificar(idade, sintomas)
+        risco, just, origem = self.ia.analisar_sintomas( sintomas)
         if preferencial_motivo:
             p = PacientePreferencial(nome, idade, cpf, sintomas, risco, motivo=preferencial_motivo)
         else:
