@@ -1,6 +1,9 @@
-class Medico:
+from app.modelos.pessoa import Pessoa
+
+
+class Medico(Pessoa):
     def __init__(self, nome):
-        self.nome = nome
+        super().__init__(nome)
         self.__total_atendimentos = 0
 
     def atender(self, paciente):
