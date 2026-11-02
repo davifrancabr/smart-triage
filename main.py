@@ -1,13 +1,18 @@
 from paciente import Paciente, PacientePreferencial
 from triagem import Triagem
-from banco import criar_tabelas
+from medico import Medico
 
 triagem = Triagem()
+
+medico = Medico("Paula")
+
+historico = []
 
 
 triagem.adicionar(Paciente('Carlos', 30, 'dor de garganta'), 3)
 triagem.adicionar(PacientePreferencial('Ana', 68, 'dor no peito', 'idoso'), 1)
 triagem.adicionar(Paciente('Rita', 25, 'febre alta'), 2)
+
 
 
 while triagem.quantidade() != 0:
@@ -29,22 +34,25 @@ while triagem.quantidade() != 0:
             else:
                 break
         case 2:
-            a = triagem.mostrar()
-            print(a)
+            fila_atual = triagem.mostrar()
+            print(fila_atual)
         case 3:
-            ...
+            proximo = triagem.chamarProximo()
+            if proximo is None:
+                print("Nenhum paciente na fila.")
+            else:
+                medico.atender(proximo)
+                proximo.mostrar()
+                historico.append((proximo, medico.nome))
         case 4:
-            ...
+            if len(historico) == 0:
+                print("Nenhum atendimento realizado ainda.")
+            else:
+                for paciente, nome_medico in historico:
+                    print(f"{paciente.nome} foi atendido(a) por Dr(a). {nome_medico}")
+                print(f"Total de atendimentos de Dr(a). {medico.nome}: {medico.get_total_atendimentos()}")
         case _:
             break
 
 
 
-
-
-"""while triagem.quantidade() > 0:
-    proximo = triagem.chamarProximo()
-    proximo.mostrar()
-
-criar_tabelas()
-print("banco feito")"""
