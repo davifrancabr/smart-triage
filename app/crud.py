@@ -1,4 +1,4 @@
-from database.connection import conectar
+from db.connection import conectar
 
 def cadastrar_paciente(cpf, nome, tipo_preferencial, sintomas, classificacao_risco):
     conexao = conectar()

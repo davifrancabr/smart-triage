@@ -1,6 +1,6 @@
-from paciente import Paciente, PacientePreferencial
-from triagem import Triagem
-from medico import Medico
+from app.modelos.paciente import Paciente, PacientePreferencial
+from app.servicos.triagem import Triagem
+from app.modelos.medico import Medico
 
 triagem = Triagem()
 
