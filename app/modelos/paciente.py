@@ -10,10 +10,12 @@ A classe Paciente agora herda de Pessoa
 
 
 class Paciente(Pessoa):
-    def __init__(self, cpf: str, nome: str, idade, tipo_preferencial: str, id_=None):
+    def __init__(self, cpf: str, nome: str, idade, tipo_preferencial: str, risco:str, sintomas: str, id_=None):
         super().__init__(nome)
         self._idade = int(idade)
         self._cpf = cpf
+        self._risco = risco
+        self._sintomas = sintomas
         self._tipo_preferencial = tipo_preferencial
         self.id = id_
 
@@ -40,9 +42,7 @@ class Paciente(Pessoa):
         return RISCOS[self._risco], self.bonus_preferencial(), ordem
 
     def __str__(self):
-        print(
-            f"Nome: {self.nome}(CPF: {self._cpf}), idade: {self._idade}, tipo preferêncial: {self._tipo_preferencial}")
-
+        return f"Nome: {self.nome}(CPF: {self._cpf}), idade: {self._idade}, tipo preferêncial: {self._tipo_preferencial}"
 
 class PacientePreferencial(Paciente):
     """Idosos (60+), gestantes, PCDs: desempatam dentro da mesma cor."""

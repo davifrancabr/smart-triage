@@ -17,7 +17,7 @@ class Medico(Pessoa):
     def nome(self):
         return self._nome
 
-    def atender(self, paciente, repo, observacao=""):
-        print(f"Dr(a). {self.nome} está atendendo {paciente.nome}")
-        repo.registrar_atendimento(paciente.id, self.id, observacao)
-        repo.atualizar_status_paciente("Atendido", paciente.id)
+    def atender(self, p, repo, observacao=""):
+        print(f"Dr(a). {self.nome} está atendendo {p.nome}")
+        repo.registrar_atendimento(self, p)
+        repo.atualizar_status_paciente(self, p)

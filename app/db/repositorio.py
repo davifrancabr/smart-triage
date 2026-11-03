@@ -1,12 +1,13 @@
 import os
 from pathlib import Path
-
+from dotenv import load_dotenv
 import mysql.connector
 from mysql.connector import Error, IntegrityError
 
-from db.connection import conectar
-from modelos.medico import Medico
-from modelos.paciente import PacientePreferencial, Paciente
+from app.modelos.medico import Medico
+from app.modelos.paciente import PacientePreferencial, Paciente
+
+load_dotenv()
 
 SCHEMA = Path(__file__).with_name("modelagem.sql")
 
@@ -18,11 +19,11 @@ _consultar -> read only
 
 def config_padrao():
     return {
-        "host": os.environ.get("DB_HOST", "localhost"),
-        "port": int(os.environ.get("DB_PORT", "3306")),
-        "user": os.environ.get("DB_USER", "root"),
-        "password": os.environ.get("DB_PASSWORD", ""),
-        "database": os.environ.get("DB_DATABASE", "triage_smart"),
+        "host": os.getenv("DB_HOST"),
+        "port": os.getenv("DB_PORT"),
+        "user": os.getenv("DB_USER"),
+        "password": os.getenv("DB_PASSWORD"),
+        "database": os.getenv("DB_DATABASE")
     }
 
 
@@ -30,19 +31,23 @@ class RepositorioDB:
     def __init__(self, config=None):
         cfg = {**config_padrao(), **(config or {})}
         nome_banco = cfg.pop("database")
+        cfg["database"] = nome_banco
+        cfg["charset"] = "utf8mb4"
         self._garantir_banco(cfg, nome_banco)
-        self.conn = mysql.connector.connect(database=nome_banco, chartset="utf8mb4", **cfg)
+        self.conn = mysql.connector.connect(**cfg)
         self._criar_tabelas()
 
     @staticmethod
-    def _garantir_banco(self, cfg, nome_banco):
+    def _garantir_banco(cfg, nome_banco):
         conn = mysql.connector.connect(**cfg)
         cur = conn.cursor()
-        cur.execute(f"CREATE DATABASE IF NOT EXISTS `{nome_banco}` "
-                    "DEFAULT CHARACTER SET utf8mb4")
-        conn.commit()
-        cur.close()
-        conn.close()
+        try:
+            cur.execute(f"CREATE DATABASE IF NOT EXISTS `{nome_banco}` "
+                        "DEFAULT CHARACTER SET utf8mb4")
+            conn.commit()
+        finally:
+            cur.close()
+            conn.close()
 
     def _criar_tabelas(self):
         cur = self.conn.cursor()
@@ -71,10 +76,10 @@ class RepositorioDB:
         cur = self.conn.cursor(dictionary=True)
         try:
             cur.execute(sql, params)
+            return cur.fetchall()
         finally:
             cur.close()
 
-    # Definir dados: apenas cpf, nome e tipo preferencial?
     def cadastrar_paciente(self, p):
         p.id = self._executar("INSERT INTO pacientes (cpf, nome, idade, tipo_preferencial)"
                               "VALUES (%s, %s, %s, %s)",
@@ -83,7 +88,7 @@ class RepositorioDB:
 
     def cadastrar_medico(self, m):
         m.id = self._executar(
-            "INSERT INTO medico (crm, nome, especialidade)"
+            "INSERT INTO medicos (crm, nome, especialidade)"
             "VALUES (%s, %s, %s)",
             (m.crm, m.nome, m.especialidade)
         )
@@ -98,26 +103,37 @@ class RepositorioDB:
 
     @staticmethod
     def _linha_para_paciente(r):
-        args = (r["nome"], r["idade"], r["tipo_preferencial"])
-        if r["tipo_preferencial"] != "Normal":
+        args = (r["cpf"], r["nome"], r["idade"], r["tipo_preferencial"])
+        if r["tipo_preferencial"]:
             return PacientePreferencial(*args, motivo=r["tipo_preferencial"])
         return Paciente(*args)
 
     def pacientes_aguardando(self):
-        rows = self._consultar(
-            "SELECT * FROM triagens WHERE status = 'Aguardando' ORDER BY id_atendimento")
+        rows = self._consultar("""
+                               SELECT p.cpf,
+                                      p.nome,
+                                      p.idade,
+                                      p.tipo_preferencial,
+                                      t.id_atendimento,
+                                      t.classificacao_risco,
+                                      t.sintomas_relatados
+                               FROM triagens t
+                                        JOIN pacientes p ON p.cpf = t.id_atendimento
+                               WHERE t.status = 'Aguardando'
+                               ORDER BY t.id_atendimento
+                               """)
         return [self._linha_para_paciente(r) for r in rows]
 
     def listar_medicos(self):
         rows = self._consultar("SELECT * FROM medicos ORDER BY crm")
-        return [Medico(r["nome"], r["especialidade"]) for r in rows]
+        return [Medico(r["crm"], r["nome"], r["especialidade"]) for r in rows]
 
     def historico(self):
         return self._consultar("""
                                SELECT a.id_atendimento,
                                       a.data_hora_chegada,
                                       p.nome AS paciente,
-                                      p.risco,
+                                      p.classificacao_risco,
                                       m.nome AS medico,
                                       m.especialidade,
                                       a.observacao,
@@ -126,8 +142,8 @@ class RepositorioDB:
                                       a.status
                                FROM triagens a
                                         JOIN pacientes p ON p.cpf = a.cpf_paciente
-                                        JOIN medicos m ON m.crm = a.crm_medico
-                               ORDER BY a.cpf DESC""")
+                                        LEFT JOIN medicos m ON m.crm = a.crm_medico
+                               ORDER BY a.data_hora_chegada DESC""")
 
     def atualizar_status_paciente(self, p):
         self._executar("UPDATE triagens SET status=%s WHERE id_atendimento=%s", (p.status, p.id_atendimento))
@@ -140,38 +156,3 @@ class RepositorioDB:
 
     def fechar(self):
         self.conn.close()
-
-    def finalizar_atendimento(self, id_atendimento):
-        conexao = conectar()
-        if not conexao:
-            print("Erro ao conectar no banco")
-            return False
-
-        try:
-            cursor = conexao.cursor()
-
-            sql = """
-                  UPDATE triagem
-                  SET status = 'Atendido'
-                  WHERE id_atendimento = %s
-                    AND status = 'Em Atendimento' \
-                  """
-            cursor.execute(sql, (id_atendimento,))
-            conexao.commit()
-
-            if cursor.rowcount > 0:
-                print("Atendimento finalizado!")
-                return True
-            else:
-                print("Atendimento não encontrado ou não estava em andamento.")
-                return False
-
-        except Exception as erro:
-            print(f"Erro ao finalizar: {erro}")
-            conexao.rollback()
-            return False
-
-        finally:
-            if conexao.is_connected():
-                cursor.close()
-                conexao.close()

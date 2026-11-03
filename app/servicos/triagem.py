@@ -19,12 +19,13 @@ class Triagem:
             self.fila.inserir(p.chave_prioridade(next(self.__contador)), p)
 
     def adicionar(self, nome, idade, cpf, sintomas, preferencial_motivo=None):
-        risco, just, origem = self.ia.analisar_sintomas(sintomas)
+        [risco, just, origem] = self.ia.analisar_sintomas(sintomas)
         if preferencial_motivo:
-            p = PacientePreferencial(cpf, nome, idade, motivo=preferencial_motivo)
+            p = PacientePreferencial(cpf, nome, idade, tipo_preferencial=preferencial_motivo,
+                                     motivo=preferencial_motivo)
         else:
-            p = Paciente(cpf, nome, idade, tipo_preferencial=preferencial_motivo)
-        self.repo.inserir_paciente(p)
+            p = Paciente(cpf, nome, idade, tipo_preferencial=preferencial_motivo, risco=risco, sintomas=sintomas)
+        self.repo.cadastrar_paciente(p)
         self.fila.inserir(p.chave_prioridade(next(self.__contador)), p)
         return p, just, origem
 
@@ -36,5 +37,5 @@ class Triagem:
         return paciente
 
     def corrigir_risco(self, p):
-        self.repo.atualizar_risco(p.paciente_id, p.novo_risco)
+        self.repo.atualizar_risco(self, p)
         self.recarregar_fila()

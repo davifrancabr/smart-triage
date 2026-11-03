@@ -3,12 +3,12 @@ services:
     image: mysql:8.0
     container_name: smart-triage-mysql
     environment:
-      MYSQL_ROOT_PASSWORD: root123
-      MYSQL_DATABASE: smart_triage
-      MYSQL_USER: triage
-      MYSQL_PASSWORD: triage123
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
     ports:
-      - "3306:3306"
+      - "3306"
     volumes:
       - mysql_data:/var/lib/mysql
 volumes:

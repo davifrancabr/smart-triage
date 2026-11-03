@@ -1,6 +1,11 @@
 import json
 import os
+
+from dotenv import load_dotenv
 from openai import OpenAI
+
+
+load_dotenv()
 
 class ClassificadorIA:
     def __init__(self, api_key: str = None):
