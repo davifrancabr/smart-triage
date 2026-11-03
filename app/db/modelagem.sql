@@ -1,15 +1,15 @@
-CREATE TABLE pacientes (
+CREATE TABLE IF NOT EXISTS pacientes (
     cpf VARCHAR(11) PRIMARY KEY,
     nome VARCHAR(100) NOT NULL,
     tipo_preferencial VARCHAR(50)
 );
 
-CREATE TABLE medicos (
+CREATE TABLE IF NOT EXISTS  medicos (
     crm VARCHAR(12) PRIMARY KEY,
     nome VARCHAR(100) NOT NULL
 );
 
-CREATE TABLE triagens (
+CREATE TABLE IF NOT EXISTS  triagens (
     id_atendimento INT AUTO_INCREMENT PRIMARY KEY,
     cpf_paciente VARCHAR(11) NOT NULL,
     crm_medico VARCHAR(12),

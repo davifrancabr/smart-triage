@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 
 import mysql.connector
+from mysql.connector import Error, IntegrityError
 
 from db.connection import conectar
 
@@ -45,50 +46,74 @@ class RepositorioDB:
         cur.close()
 
     def _executar(self, sql, params=()):
-        ...
-
-    def _consultar(self, sql, params=()):
-        ...
-
-    def cadastrar_paciente(self, cpf, nome, tipo_preferencial, sintomas, classificacao_risco):
-        conexao = conectar()
-        if not conexao:
-            print("Erro ao conectar no banco")
-            return False
+        cur = self.conn.cursor(dictionary=True)
 
         try:
-            cursor = conexao.cursor()
-
-            # Insere na tabela pacientes
-            sql_paciente = """
-                           INSERT INTO paciente (cpf, nome, tipo_preferencial)
-                           VALUES (%s, %s, %s) \
-                           """
-            cursor.execute(sql_paciente, (cpf, nome, tipo_preferencial))
-
-            # Insere na tabela triagens
-            sql_triagem = """
-                          INSERT INTO triagem
-                              (cpf_paciente, sintomas_relatados, classificacao_risco, status)
-                          VALUES (%s, %s, %s, 'Aguardando') \
-                          """
-            cursor.execute(sql_triagem, (cpf, sintomas, classificacao_risco))
-
-            conexao.commit()
-            print("Paciente cadastrado com sucesso!")
-            return True
-
-        except Exception as erro:
-            print(f"Erro ao cadastrar paciente: {erro}")
-            conexao.rollback()
-            return False
-
+            cur.execute(sql, params)
+            self.conn.commit()
+            return cur.lastrowid
+        except Error:
+            self.conn.rollback()
+            raise
         finally:
-            if conexao.is_connected():
-                cursor.close()
-                conexao.close()
+            cur.close()
 
-    def cadastrar_medico(self,crm, nome):
+    def _consultar(self, sql, params=()):
+        cur = self.conn.cursor(dictionary=True)
+        try:
+            cur.execute(sql, params)
+        finally:
+            cur.close()
+
+    # Definir dados: apenas cpf, nome e tipo preferencial?
+    def cadastrar_paciente(self, p):
+        p.id = self._executar("INSERT INTO pacientes (cpf, nome, tipo_preferencial)"
+                              "VALUES (%s, %s, %s)",
+                              (p.cpf, p.nome, p.tipo_preferencial))
+        return p.id
+        #conexao = conectar()
+        #if not conexao:
+        #    print("Erro ao conectar no banco")
+        #    return False
+
+        #try:
+        #    cursor = conexao.cursor()
+
+        #    # Insere na tabela pacientes
+        #    sql_paciente = """
+        #                   INSERT INTO paciente (cpf, nome, tipo_preferencial)
+        #                   VALUES (%s, %s, %s) \
+        #                   """
+        #    cursor.execute(sql_paciente, (cpf, nome, tipo_preferencial))
+
+        #    # Insere na tabela triagens
+        #    sql_triagem = """
+        #                  INSERT INTO triagem
+        #                      (cpf_paciente, sintomas_relatados, classificacao_risco, status)
+        #                  VALUES (%s, %s, %s, 'Aguardando') \
+        #                  """
+        #    cursor.execute(sql_triagem, (cpf, sintomas, classificacao_risco))
+
+        #    conexao.commit()
+        #    print("Paciente cadastrado com sucesso!")
+        #    return True
+
+        #except Exception as erro:
+        #    print(f"Erro ao cadastrar paciente: {erro}")
+        #    conexao.rollback()
+        #    return False
+
+        #finally:
+        #    if conexao.is_connected():
+        #        cursor.close()
+        #        conexao.close()
+    def cadastrar_medico(self, p):
+        p.id = self._executar(
+            "INSERT INTO medico (crm, nome)"
+            "VALUES (%s, %s)",
+            (p.crm, p.nome)
+        )
+        return p.id
         conexao = conectar()
         if not conexao:
             print("Erro ao conectar no banco")
@@ -118,85 +143,40 @@ class RepositorioDB:
                 conexao.close()
 
     def listar_fila(self):
-        conexao = conectar()
-        if not conexao:
-            print("Erro ao conectar no banco")
-            return []
-
-        try:
-            cursor = conexao.cursor(dictionary=True)
-
-            sql = """
-                  SELECT t.id_atendimento, \
-                         p.nome AS Nome_Paciente, \
-                         p.tipo_preferencial, \
-                         t.sintomas_relatados, \
-                         t.classificacao_risco, \
-                         t.data_hora_chegada
-                  FROM triagem t
-                           JOIN paciente p ON t.cpf_paciente = p.cpf
-                  WHERE t.status = 'Aguardando'
-                  ORDER BY CASE t.classificacao_risco \
-                               WHEN 'Vermelho' THEN 1 \
-                               WHEN 'Amarelo' THEN 2 \
-                               WHEN 'Verde' THEN 3 \
-                               ELSE 4 \
-                               END ASC, \
-                           CASE \
-                               WHEN p.tipo_preferencial IS NOT NULL THEN 0 \
-                               ELSE 1 \
-                               END ASC, \
-                           t.data_hora_chegada ASC \
-                  """
-
-            cursor.execute(sql)
-            resultados = cursor.fetchall()
-            return resultados
-
-        except Exception as erro:
-            print(f"Erro ao listar fila: {erro}")
-            return []
-
-        finally:
-            if conexao.is_connected():
-                cursor.close()
-                conexao.close()
+        resultado =  self._executar("""
+            SELECT 
+                t.id_atendimento,
+                p.nome AS Nome_Paciente,
+                p.tipo_preferencial,
+                t.sintomas_relatados,
+                t.classificacao_risco,
+                t.data_hora_chegada
+            FROM triagem t
+            JOIN paciente p ON t.cpf_paciente = p.cpf
+            WHERE t.status = 'Aguardando'
+            ORDER BY 
+                CASE t.classificacao_risco
+                    WHEN 'Vermelho' THEN 1
+                    WHEN 'Amarelo' THEN 2
+                    WHEN 'Verde' THEN 3
+                    ELSE 4
+                END ASC,
+                CASE 
+                    WHEN p.tipo_preferencial IS NOT NULL THEN 0 
+                    ELSE 1 
+                END ASC,
+                t.data_hora_chegada ASC
+        """)
+        return resultado
 
     def atender_paciente(self, id_atendimento, crm_medico):
-        conexao = conectar()
-        if not conexao:
-            print("Erro ao conectar no banco")
-            return False
-
-        try:
-            cursor = conexao.cursor()
-
-            sql = """
-                  UPDATE triagem
-                  SET status     = 'Em Atendimento',
-                      crm_medico = %s
-                  WHERE id_atendimento = %s
-                    AND status = 'Aguardando' \
-                  """
-            cursor.execute(sql, (crm_medico, id_atendimento))
-            conexao.commit()
-
-            if cursor.rowcount > 0:
-                print("Paciente colocado em atendimento!")
-                return True
-            else:
-                print("Nenhum paciente encontrado ou já estava em atendimento.")
-                return False
-
-        except Exception as erro:
-            print(f"Erro ao atender: {erro}")
-            conexao.rollback()
-            return False
-
-        finally:
-            if conexao.is_connected():
-                cursor.close()
-                conexao.close()
+        resultado = self._executar("""
+            UPDATE triagem
+            SET status = 'Em Atendimento',
+                crm_medico = %s
+            WHERE id_atendimento = %s
+              AND status = 'Aguardando'
+        """, (crm_medico, id_atendimento))
 
     def finalizar_atendimento(self, id_atendimento):
         conexao = conectar()

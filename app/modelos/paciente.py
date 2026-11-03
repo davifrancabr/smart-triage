@@ -8,7 +8,7 @@ A classe Paciente agora herda de Pessoa
 @property simplifica a criação de getters e setters
 """
 class Paciente(Pessoa):
-    def __init__(self, nome: str, idade, cpf: str, sintomas: str, risco = "VERDE", id_ = None, chegada = None):
+    def __init__(self, nome: str, idade, cpf: str, sintomas: str, risco = "Verde", id_ = None, chegada = None):
         super().__init__(nome, cpf)
         self._idade = int(idade)
         self._sintomas = sintomas

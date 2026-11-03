@@ -1,5 +1,3 @@
-import heapq
-
 import itertools
 
 from app.estruturas.fila_prioridade import FilaPrioridade
@@ -31,7 +29,7 @@ class Triagem:
         self.fila.inserir(p.chave_prioridade(next(self.__contador)), p)
         return p, just, origem
 
-    def chamarProximo(self, medico, obervacao = ""):
+    def chamar_proximo(self, medico, obervacao = ""):
         if self.fila.vazia():
             return None
         paciente = self.fila.remover()

@@ -65,7 +65,7 @@ def executar():
                 print("Médico inválido.")
                 continue
             obs = input("Observação do atendimento: ")
-            p = triagem.chamarProximo(m, obs)
+            p = triagem.chamar_proximo(m, obs)
             print(f"Atendido: {EMOJI[p.risco]} {p} por {m.nome}")
         elif op == "4":
             for h in repo.historico():
