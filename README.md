@@ -1,4 +1,4 @@
-# Triagem Inteligente (Smart Triage)
+# Sistema de Triagem Médica Inteligente (Smart Triage)
 
 Este sistema é direcionado para uso hospitalar, com objetivo de ordenar os pacientes cadastrados, dependendo da gravidade em que o paciente se encontra, para atendimento médico. Priorizando aqueles que estiverem em estado mais grave. Com assistência de Inteligência Artificial.
 
