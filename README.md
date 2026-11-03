@@ -26,7 +26,7 @@ Este sistema é direcionado para uso hospitalar, com objetivo de ordenar os paci
 1. Clone este repositório:
 
    ```bash
-   [GitHub](https://github.com/davifrancabr/smart-triage)
+   git clone https://github.com/davifrancabr/smart-triage.git
    ```
 
 2. Instale as dependências:
