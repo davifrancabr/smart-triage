@@ -1,0 +1,3 @@
+atualizar_risco
+inserir_paciente
+pacientes_aguardando

@@ -1,4 +1,4 @@
-from app.db.crud import RepositorioDB
+from app.db.repositorio import RepositorioDB
 from app.ia.ClassificadorIAService import ClassificadorIA
 from app.modelos.constantes import EMOJI
 from app.modelos.medico import Medico
@@ -12,13 +12,14 @@ def escolher_medico(repo):
         return None
 
     for m in medicos:
-        print(f"    {m.id}) {m.nome} - {m.especialidade}")
+        print(f"    {m.crm}) {m.nome} - {m.especialidade}")
 
     try:
         mid = int(input("ID do médico: "))
     except ValueError:
         return None
     return next((m for m in medicos if m.id == mid), None)
+
 
 def menu():
     print("""
@@ -31,6 +32,7 @@ def menu():
     6) Corrigir risco de paciente na fila
     0) Sair""")
     return input("> ").strip()
+
 
 def executar():
     repo = RepositorioDB
@@ -48,7 +50,7 @@ def executar():
             motivo = input("Preferencial? (idoso/gestante/pcd ou Enter p/ não): ").strip()
             if not motivo and idade >= 60:
                 motivo = "idoso"
-            p, just, origem = triagem.adicionar(nome, idade, sintomas, motivo or None)
+            p, just, origem = triagem.adicionar(nome, idade, sintomas, preferencial_motivo=motivo or None)
             print(f"\n{EMOJI[p.risco]} {p}\n  Classificação: {origem}\n  Motivo: {just}")
         elif op == "2":
             itens = triagem.fila.ordenada()
@@ -73,6 +75,8 @@ def executar():
                       f"-> Dr(a). {h['medico']} ({h['especialidade']}) | {h['observacao']})")
         elif op == "5":
             m = Medico(input("Nome do medico: "), input('CPF: '), input('CRM: '), input("Especialidade: "))
+            repo.cadastrar_medico(m)
+            print(f"Médico cadastrado com crm: {m.crm}")
         elif op == "6":
             try:
                 pid = int(input("ID do paciente: "))
@@ -80,7 +84,7 @@ def executar():
             except ValueError:
                 print("Entrada inválida.")
                 continue
-            triagem.corrigir_risco(pid, novo)
+            triagem.corrigir_risco((pid, novo))
             print("Risco atualizado e fila reorganizada.")
         elif op == "0":
             break

@@ -2,8 +2,8 @@ from app.modelos.pessoa import Pessoa
 
 
 class Medico(Pessoa):
-    def __init__(self, nome, cpf: str, crm:str , especialidade: str, id_ = None):
-        super().__init__(nome,  cpf)
+    def __init__(self,  crm: str, nome, especialidade: str, id_=None):
+        super().__init__(nome)
         self.especialidade = especialidade
         self._crm = crm
         self._nome = nome
@@ -17,8 +17,7 @@ class Medico(Pessoa):
     def nome(self):
         return self._nome
 
-    def atender(self, paciente, repo, observacao = ""):
+    def atender(self, paciente, repo, observacao=""):
         print(f"Dr(a). {self.nome} está atendendo {paciente.nome}")
         repo.registrar_atendimento(paciente.id, self.id, observacao)
-        repo.atualizar_status_paciente(paciente.id, "ATENDIDO")
-
+        repo.atualizar_status_paciente("Atendido", paciente.id)

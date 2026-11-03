@@ -18,26 +18,23 @@ class Triagem:
         for p in self.repo.pacientes_aguardando():
             self.fila.inserir(p.chave_prioridade(next(self.__contador)), p)
 
-
-    def adicionar(self, nome, idade, cpf, sintomas, preferencial_motivo = None):
-        risco, just, origem = self.ia.analisar_sintomas( sintomas)
+    def adicionar(self, nome, idade, cpf, sintomas, preferencial_motivo=None):
+        risco, just, origem = self.ia.analisar_sintomas(sintomas)
         if preferencial_motivo:
-            p = PacientePreferencial(nome, idade, cpf, sintomas, risco, motivo=preferencial_motivo)
+            p = PacientePreferencial(cpf, nome, idade, motivo=preferencial_motivo)
         else:
-            p = Paciente(nome, idade, cpf, sintomas, risco)
+            p = Paciente(cpf, nome, idade, tipo_preferencial=preferencial_motivo)
         self.repo.inserir_paciente(p)
         self.fila.inserir(p.chave_prioridade(next(self.__contador)), p)
         return p, just, origem
 
-    def chamar_proximo(self, medico, obervacao = ""):
+    def chamar_proximo(self, medico, obervacao=""):
         if self.fila.vazia():
             return None
         paciente = self.fila.remover()
-        medico.atender(paciente, obervacao)
+        medico.atender(paciente, self.repo, obervacao)
         return paciente
 
-    def corrigir_risco(self, paciente_id, novo_risco):
-        self.repo.atualizar_risco(paciente_id, novo_risco)
+    def corrigir_risco(self, p):
+        self.repo.atualizar_risco(p.paciente_id, p.novo_risco)
         self.recarregar_fila()
-
-
