@@ -1,11 +1,8 @@
 import json
 import os
 
-from dotenv import load_dotenv
 from openai import OpenAI
 
-
-load_dotenv()
 
 class ClassificadorIA:
     def __init__(self, api_key: str = None):
@@ -31,7 +28,7 @@ class ClassificadorIA:
         )
 
         try:
-            
+
             if self.__client:
                 response = self.__client.chat.completions.create(
                     model="gpt-4o-mini",
@@ -47,11 +44,12 @@ class ClassificadorIA:
                     "risco": resultado_json.get("risco", "Verde"),
                     "justificativa": resultado_json.get("justificativa", "Classificação padrão.")
                 }
-            
+
             else:
-                
+
                 desc_lower = descricao_sintomas.lower()
-                if any(termo in desc_lower for termo in ["peito", "respirar", "inconsciente", "sangue", "infarto", "derrame"]):
+                if any(termo in desc_lower for termo in
+                       ["peito", "respirar", "inconsciente", "sangue", "infarto", "derrame"]):
                     return {
                         "risco": "Vermelho",
                         "justificativa": "Sintomas indicam risco iminente à vida (emergência médica absoluta)."
@@ -64,11 +62,11 @@ class ClassificadorIA:
                 else:
                     return {
                         "risco": "Verde",
-                        "text": "Caso eletivo ou de baixo risco, apto para aguardar atendimento ambulatorial."
+                        "justificativa": "Caso eletivo ou de baixo risco, apto para aguardar atendimento ambulatorial."
                     }
 
         except Exception as e:
-            
+
             return {
                 "risco": "Amarelo",
                 "justificativa": f"Erro na integração com IA ({str(e)}). Direcionado para avaliação manual por precaução."

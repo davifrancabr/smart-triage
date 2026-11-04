@@ -35,7 +35,7 @@ Este sistema é direcionado para uso hospitalar, com objetivo de ordenar os paci
    pip install -r requirements.txt
    ```
    
-3. Configura todas as credenciais necessárias no `.env.local`
+3. Configura todas as credenciais necessárias no `.env`
 ```dotenv
 DB_HOST=localhost
 DB_PORT=3306

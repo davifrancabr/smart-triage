@@ -2,22 +2,24 @@ from app.modelos.pessoa import Pessoa
 
 
 class Medico(Pessoa):
-    def __init__(self,  crm: str, nome, especialidade: str, id_=None):
+    def __init__(self, crm: str, nome: str, especialidade: str):
         super().__init__(nome)
-        self.especialidade = especialidade
+        crm = (crm or "").strip()
+        if not crm:
+            raise ValueError("O CRM não pode ser vazio.")
+        self._especialidade = (especialidade or "").strip() or "Clínico Geral"
         self._crm = crm
-        self._nome = nome
-        self.id = id_
 
     @property
-    def crm(self):
+    def crm(self) -> str:
         return self._crm
 
     @property
-    def nome(self):
-        return self._nome
+    def especialidade(self) -> str:
+        return self._especialidade
 
-    def atender(self, p, repo, observacao=""):
-        print(f"Dr(a). {self.nome} está atendendo {p.nome}")
-        repo.registrar_atendimento(self, p)
-        repo.atualizar_status_paciente(self, p)
+    def atender(self, paciente, repo, observacao: str = "") -> bool:
+        return repo.atender_paciente(paciente.id_atendimento, self._crm, observacao)
+
+    def __str__(self) -> str:
+        return f"Dr(a). {self.nome} - CRM {self._crm} ({self._especialidade})"

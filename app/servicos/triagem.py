@@ -1,7 +1,9 @@
 import itertools
+import re
 
 from app.estruturas.fila_prioridade import FilaPrioridade
 from app.modelos.paciente import PacientePreferencial, Paciente
+from modelos.constantes import normalizar_risco
 
 
 class Triagem:
@@ -9,33 +11,50 @@ class Triagem:
         self.repo = repo
         self.ia = classificador
         self.fila = FilaPrioridade()
-        self.__contador = itertools.count()
+        self._contador = itertools.count()
         self.recarregar_fila()
 
     def recarregar_fila(self):
         self.fila = FilaPrioridade()
-        self.__contador = itertools.count()
+        self._contador = itertools.count()
         for p in self.repo.pacientes_aguardando():
-            self.fila.inserir(p.chave_prioridade(next(self.__contador)), p)
+            self._enfileirar(p)
+
+    def _enfileirar(self, paciente: Paciente):
+        self.fila.inserir(paciente.chave_prioridade(next(self._contador)), paciente)
 
     def adicionar(self, nome, idade, cpf, sintomas, preferencial_motivo=None):
-        [risco, just, origem] = self.ia.analisar_sintomas(sintomas)
+        cpf = re.sub(r"\D", "", cpf or "")
+        if len(cpf) != 11:
+            raise ValueError("CPF Inválido: informe 11 dígitos.")
+        if not (sintomas or "").strip():
+            raise ValueError("Informe os sintomas do paciente.")
+
+        resultado = self.ia.analisar_sintomas(sintomas)
+        risco = normalizar_risco(resultado["risco"])
+        dados = dict(risco=risco, sintomas=sintomas.strip())
+
         if preferencial_motivo:
-            p = PacientePreferencial(cpf, nome, idade, tipo_preferencial=preferencial_motivo,
-                                     motivo=preferencial_motivo)
+            paciente = PacientePreferencial(cpf, nome, idade, motivo=preferencial_motivo, **dados)
         else:
-            p = Paciente(cpf, nome, idade, tipo_preferencial=preferencial_motivo, risco=risco, sintomas=sintomas)
-        self.repo.cadastrar_paciente(p)
-        self.fila.inserir(p.chave_prioridade(next(self.__contador)), p)
-        return p, just, origem
+            paciente = Paciente(cpf, nome, idade, **dados)
+
+        self.repo.registrar_chegada(paciente)
+        self._enfileirar(paciente)
+        return paciente, resultado.get("justificativa", ""), resultado.get("origem", "IA")
 
     def chamar_proximo(self, medico, obervacao=""):
-        if self.fila.vazia():
+        paciente = self.fila.espiar()
+        if paciente is None:
             return None
-        paciente = self.fila.remover()
-        medico.atender(paciente, self.repo, obervacao)
+        if not medico.atender(paciente, self.repo, obervacao):
+            self.recarregar_fila()
+            return None
+        self.fila.remover()
         return paciente
 
-    def corrigir_risco(self, p):
-        self.repo.atualizar_risco(self, p)
+    def corrigir_risco(self, id_atendimento: int, novo_risco: str):
+        novo_risco = normalizar_risco(novo_risco)
+        if not self.repo.atualizar_risco(id_atendimento, novo_risco):
+            raise ValueError("Paciente não encontrado na fila de espera.")
         self.recarregar_fila()
