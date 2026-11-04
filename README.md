@@ -1,13 +1,16 @@
 # Sistema de Triagem Médica Inteligente (Smart Triage)
 
-Este sistema é direcionado para uso hospitalar, com objetivo de ordenar os pacientes cadastrados, dependendo da gravidade em que o paciente se encontra, para atendimento médico. Priorizando aqueles que estiverem em estado mais grave. Com assistência de Inteligência Artificial.
+Este sistema é direcionado para uso hospitalar, com objetivo de ordenar os pacientes cadastrados, dependendo da
+gravidade em que o paciente se encontra, para atendimento médico. Priorizando aqueles que estiverem em estado mais
+grave. Com assistência de Inteligência Artificial.
 
 ## Funcionalidades
 
 - **Paciente:** Área de cadastro do paciente no sistema, contendo nome, idade e sintomas.
 - **Médico:** Área acessada por médicos, para visualizar a lista de prioridade para atendimento.
 - **Triagem:** Área que registra e indica a triagem dos pacientes cadastrados.
-- **Integração com uma API de IA:** Recebe o cadastro dos pacientes, auxiliando na análise e classificação no grau de risco dos pacientes, gerando a Lista de Prioridade.
+- **Integração com uma API de IA:** Recebe o cadastro dos pacientes, auxiliando na análise e classificação no grau de
+  risco dos pacientes, gerando a Lista de Prioridade.
 
 ## Tecnologias utilizadas
 
@@ -18,39 +21,50 @@ Este sistema é direcionado para uso hospitalar, com objetivo de ordenar os paci
 
 ### Pré-requisitos
 
-- Python 3.9+
+- Python 3.10+
 - Pacotes obrigatórios (listado no `requirements.txt`)
 
 ## Como Instalar e Rodar
 
 1. Clone este repositório:
 
-   ```bash
-   git clone https://github.com/davifrancabr/smart-triage.git
-   ```
+```bash
+git clone https://github.com/davifrancabr/smart-triage.git
+```
 
 2. Instale as dependências:
 
-   ```bash
-   pip install -r requirements.txt
-   ```
-   
+```bash
+pip install -r requirements.txt
+```
+
 3. Configura todas as credenciais necessárias no `.env`
+
 ```dotenv
 DB_HOST=localhost
 DB_PORT=3306
-DB_USER=
-DB_PASSWORD=
-DB_NAME=
+DB_USER=triage
+DB_PASSWORD=troque-esta-senha
+DB_NAME=smart_triage
+DB_ROOT_PASSWORD=troque-a-senha-root
+
 OPENAI_API_KEY=Seu Token da OpenAI
 ```
 
-4. Execute o projeto:
+4. Rode o Docker Compose
 
-   ```bash
-   python main.py
-   ```
+```bash
+docker compose up -d
+```
 
+5. Execute o projeto:
+
+```bash
+python main.py
+```
+
+OBS.: Caso receba o erro ``ERROR 1045 (28000): Access denied for user 'root'@''localhost' (using password: YES)``, Limpe
+o diretorio de dados do container Docker e tente novamente
 
 ## Como Contribuir
 
@@ -67,17 +81,17 @@ Esse projeto é open source e está disponivel sob a licença do MIT.
 
 ## Integrantes:
 
-| Nome | Matrícula |
-|------|-----------|
-| Davi Cavalcante França | 2671244 |
-| Eduarda Rafaella Silva Melo | 2633621 |
-| Tayná Santos Santana González  | 2636576 |
-| lívia da Silva Teixeira de Barros | 2653161 |
-| Gustavo WIlliam Dos Santos | 2639157 |
+| Nome                              | Matrícula |
+|-----------------------------------|-----------|
+| Davi Cavalcante França            | 2671244   |
+| Eduarda Rafaella Silva Melo       | 2633621   |
+| Tayná Santos Santana González     | 2636576   |
+| lívia da Silva Teixeira de Barros | 2653161   |
+| Gustavo WIlliam Dos Santos        | 2639157   |
 
 ## Informações Acadêmicas
 
 - **Instituição:** Afya - Centro Universitário de Maceió
 - **Curso:** Ciência da Computação
 - **Disciplina:** Estrutura de Dados
-- **Professor(a):** Amaury Nogueira Neto
+- **Professor (a):** Amaury Nogueira Neto
