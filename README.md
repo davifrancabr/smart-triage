@@ -86,7 +86,7 @@ Esse projeto é open source e está disponivel sob a licença do MIT.
 | Davi Cavalcante França            | 2671244   |
 | Eduarda Rafaella Silva Melo       | 2633621   |
 | Tayná Santos Santana González     | 2636576   |
-| lívia da Silva Teixeira de Barros | 2653161   |
+| Lívia Da Silva Teixeira de Barros | 2653161   |
 | Gustavo WIlliam Dos Santos        | 2639157   |
 
 ## Informações Acadêmicas
