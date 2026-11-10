@@ -8,4 +8,3 @@ class Pessoa:
     @property
     def nome(self) -> str:
         return self._nome
-

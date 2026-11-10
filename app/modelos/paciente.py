@@ -59,7 +59,6 @@ class Paciente(Pessoa):
         return f"{self.nome} (CPF: {self._cpf}), idade: {self._idade} preferencial: {self._tipo_preferencial}"
 
 
-
 class PacientePreferencial(Paciente):
     """Idosos (60+), gestantes, PCDs: desempatam dentro da mesma cor."""
 

@@ -20,7 +20,6 @@ SCHEMA = Path(__file__).with_name("modelagem.sql")
 _ERROS_SEM_PRERMISSAO = (1044, 1142, 1227)
 
 
-
 def config_padrao() -> dict:
     return {
         "host": os.environ.get("DB_HOST", "localhost"),
@@ -67,19 +66,6 @@ class RepositorioDB:
                 if sql:
                     cur.execute(sql)
             self.conn.commit()
-        finally:
-            cur.close()
-
-    def _executar(self, sql, params=()):
-        cur = self.conn.cursor(dictionary=True)
-
-        try:
-            cur.execute(sql, params)
-            self.conn.commit()
-            return cur.lastrowid
-        except Error:
-            self.conn.rollback()
-            raise
         finally:
             cur.close()
 
@@ -164,19 +150,6 @@ class RepositorioDB:
             """
         )
         return [self._linha_para_paciente(r) for r in rows]
-
-    def cadastrar_paciente(self, p):
-        p.id = self._executar("INSERT INTO pacientes (cpf, nome, idade, tipo_preferencial)"
-                              "VALUES (%s, %s, %s, %s)",
-                              (p.cpf, p.nome, p.idade, p.tipo_preferencial))
-        return p.id
-
-    def registrar_atendimento(self, p):
-        p.id = self._executar(
-            "INSERT INTO triagens (cpf_paciente, crm_medico, observacao, sintomas_relatados, classificacao_risco, status, data_hora_chegada) VALUES (%s, %s ,%s, %s, %s, %s, %s)",
-            (p.cpf_paciente, p.crm_medico, p.observacao, p.sintomas_relatados, p.classificacao_risco, p.status,
-             p.data_hora_chegada))
-        return p.id
 
     @staticmethod
     def _linha_para_paciente(r: dict) -> Paciente:
